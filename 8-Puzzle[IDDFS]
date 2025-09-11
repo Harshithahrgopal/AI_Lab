@@ -1,0 +1,97 @@
+from collections import deque
+
+GOAL = ((1, 2, 3),
+        (4, 5, 6),
+        (7, 8, 0))
+
+MOVES = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+def find_blank(state):
+    for i in range(3):
+        for j in range(3):
+            if state[i][j] == 0:
+                return i, j
+
+def is_goal(state):
+    return state == GOAL
+
+def swap(state, pos1, pos2):
+    state = [list(row) for row in state]
+    x1, y1 = pos1
+    x2, y2 = pos2
+    state[x1][y1], state[x2][y2] = state[x2][y2], state[x1][y1]
+    return tuple(tuple(row) for row in state)
+
+def get_neighbors(state):
+    x, y = find_blank(state)
+    neighbors = []
+    for dx, dy in MOVES:
+        nx, ny = x + dx, y + dy
+        if 0 <= nx < 3 and 0 <= ny < 3:
+            new_state = swap(state, (x, y), (nx, ny))
+            neighbors.append(new_state)
+    return neighbors
+
+def iddfs(start, max_depth=20):
+    for depth in range(max_depth):
+        print(f"\n=== Depth: {depth} ===")
+        visited = set()
+        states_at_depth = set()
+        found, path = dls_collect_states(start, depth, visited, states_at_depth)
+        # Print all states reached at this depth side by side
+        print_states_side_by_side(states_at_depth)
+        if found:
+            print(f"Solution found at depth {depth} in {len(path) - 1} moves!")
+            print_path(path)
+            return path
+    print("No solution found")
+    return None
+
+def dls_collect_states(state, depth, visited, states_at_depth):
+    states_at_depth.add(state)
+    if is_goal(state):
+        return True, [state]
+    if depth == 0:
+        return False, []
+    
+    visited.add(state)
+    for neighbor in get_neighbors(state):
+        if neighbor not in visited:
+            found, path = dls_collect_states(neighbor, depth - 1, visited, states_at_depth)
+            if found:
+                return True, [state] + path
+    visited.remove(state)
+    return False, []
+
+def print_state(state):
+    for row in state:
+        print(row)
+
+def print_path(path):
+    print("\nSolution path:")
+    for step in path:
+        print_state(step)
+        print()
+
+def print_states_side_by_side(states):
+    states = list(states)
+    # Convert each state to list of strings, one per row
+    str_states = []
+    for state in states:
+        str_state = []
+        for row in state:
+            str_state.append(" ".join(str(x) if x != 0 else " " for x in row))
+        str_states.append(str_state)
+    
+    # Print row by row for all states side by side
+    rows = len(str_states[0])
+    for i in range(rows):
+        line = "    ".join(str_state[i] for str_state in str_states)
+        print(line)
+
+if __name__ == "__main__":
+    start_state = ((1, 2, 3),
+                   (4, 0, 6),
+                   (7, 5, 8))
+    
+    iddfs(start_state, max_depth=3)
