@@ -1,0 +1,42 @@
+graph = {
+    'A': ['B', 'C'],
+    'B': ['D', 'E'],
+    'C': ['F', 'G'],
+    'D': ['H'],
+    'E': ['I'],
+    'F': [],
+    'G': [],
+    'H': [],
+    'I': []
+}
+
+goal = 'G'
+
+def iddfs(root, goal, max_depth):
+    for depth in range(max_depth + 1):
+        print(f"\n=== Searching at depth: {depth} ===")
+        visited_order = []
+        found, _ = dls(root, goal, depth, [], visited_order)
+        print("Traversal order at this depth:", " -> ".join(visited_order))
+        if found:
+            print(f"\nGoal '{goal}' found at depth {depth}!")
+            return
+    print(f"\nGoal '{goal}' not found within depth {max_depth}.")
+
+def dls(node, goal, depth, path, visited_order):
+    path = path + [node]
+    visited_order.append(node)
+    
+    if node == goal:
+        return True, path
+    if depth == 0:
+        return False, []
+    
+    for child in graph.get(node, []):
+        found, result_path = dls(child, goal, depth - 1, path, visited_order)
+        if found:
+            return True, result_path
+    return False, []
+
+if __name__ == "__main__":
+    iddfs('A', goal, max_depth=3)
