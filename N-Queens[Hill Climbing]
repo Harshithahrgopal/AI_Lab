@@ -1,0 +1,88 @@
+import random
+
+def generate_random_state(n=4):
+    return [random.randint(0, n-1) for _ in range(n)]
+
+def conflicts(state):
+    count = 0
+    n = len(state)
+    for i in range(n):
+        for j in range(i+1, n):
+            if state[i] == state[j]:
+                count += 1
+            if abs(state[i] - state[j]) == abs(i - j):
+                count += 1
+    return count
+
+def print_state(state):
+    n = len(state)
+    print("State array:", state)
+    for row in range(n):
+        line = ""
+        for col in range(n):
+            if state[col] == row:
+                line += " Q "
+            else:
+                line += " . "
+        print(line)
+    print()
+
+def get_neighbors(state):
+    neighbors = []
+    n = len(state)
+    for col in range(n):
+        for row in range(n):
+            if state[col] != row:
+                neighbor = state.copy()
+                neighbor[col] = row
+                neighbors.append(neighbor)
+    return neighbors
+
+def hill_climbing_with_restarts(max_restarts=100):
+    restart_count = 0
+
+    while restart_count < max_restarts:
+        current = generate_random_state()
+        current_conflicts = conflicts(current)
+        step = 0
+
+        print(f"Restart {restart_count+1}: Initial state (conflicts={current_conflicts}):")
+        print_state(current)
+
+        while True:
+            if current_conflicts == 0:
+                print("Solution found!")
+                return current
+
+            neighbors = get_neighbors(current)
+            next_state = None
+            next_conflicts = current_conflicts
+
+            for neighbor in neighbors:
+                c = conflicts(neighbor)
+                if c < next_conflicts:
+                    next_state = neighbor
+                    next_conflicts = c
+
+            if next_conflicts >= current_conflicts:
+                print(f"Local optimum reached at step {step} with conflicts {current_conflicts}. Restarting...\n")
+                break
+            else:
+                step += 1
+                current = next_state
+                current_conflicts = next_conflicts
+                print(f"Step {step} (conflicts={current_conflicts}):")
+                print_state(current)
+
+        restart_count += 1
+
+    print("Failed to find solution within max restarts.")
+    return None
+
+# Run the algorithm
+solution = hill_climbing_with_restarts()
+if solution:
+    print("Final solution:")
+    print_state(solution)
+else:
+    print("No solution found.")
