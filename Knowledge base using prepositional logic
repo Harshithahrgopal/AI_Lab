@@ -1,0 +1,49 @@
+# Truth table and entailment checker for propositional KB
+# KB: Q → P , P → ¬Q , Q ∨ R
+
+def implies(a, b):
+    return (not a) or b  # implication truth rule
+
+def truth_table():
+    print("Q | P | R || Q->P | P->~Q | QvR || KB True?")
+    print("-"*45)
+    models = []
+    for Q in [False, True]:
+        for P in [False, True]:
+            for R in [False, True]:
+                s1 = implies(Q, P)
+                s2 = implies(P, not Q)
+                s3 = Q or R
+                kb_true = s1 and s2 and s3
+                if kb_true:
+                    models.append((Q, P, R))
+                print(f"{int(Q)} | {int(P)} | {int(R)} ||  {int(s1)}   |   {int(s2)}   |  {int(s3)}  ||    {int(kb_true)}")
+    return models
+
+def entails(kb_models, expr_func):
+    # KB entails φ if φ is True in all models where KB is True
+    for (Q, P, R) in kb_models:
+        if not expr_func(Q, P, R):
+            return False
+    return True
+
+def main():
+    print("Truth Table for KB: {Q->P, P->~Q, QvR}")
+    kb_models = truth_table()
+
+    print("\nModels where KB is True:")
+    for (Q, P, R) in kb_models:
+        print(f"  Q={int(Q)}, P={int(P)}, R={int(R)}")
+
+    # Entailment checks
+    ent_R = entails(kb_models, lambda Q, P, R: R)
+    ent_R_imp_P = entails(kb_models, lambda Q, P, R: implies(R, P))
+    ent_Q_imp_R = entails(kb_models, lambda Q, P, R: implies(Q, R))
+
+    print("\nEntailment Results:")
+    print(f"ii) KB entails R?           -> {'Yes' if ent_R else 'No'}")
+    print(f"iii) KB entails (R → P)?    -> {'Yes' if ent_R_imp_P else 'No'}")
+    print(f"iv) KB entails (Q → R)?     -> {'Yes' if ent_Q_imp_R else 'No'}")
+
+if __name__ == "__main__":
+    main()
