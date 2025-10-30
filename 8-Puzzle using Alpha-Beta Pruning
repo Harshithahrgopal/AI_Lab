@@ -1,0 +1,112 @@
+import copy
+
+goal_state = [[1, 2, 3],
+              [4, 5, 6],
+              [7, 8, 0]]  # 0 = blank tile
+
+
+def print_board(state):
+    for row in state:
+        print(' '.join(str(x) if x != 0 else '_' for x in row))
+    print()
+
+
+def find_blank(state):
+    for i in range(3):
+        for j in range(3):
+            if state[i][j] == 0:
+                return i, j
+
+
+def move_blank(state, direction):
+    x, y = find_blank(state)
+    new_state = copy.deepcopy(state)
+    if direction == "Up" and x > 0:
+        new_state[x][y], new_state[x-1][y] = new_state[x-1][y], new_state[x][y]
+    elif direction == "Down" and x < 2:
+        new_state[x][y], new_state[x+1][y] = new_state[x+1][y], new_state[x][y]
+    elif direction == "Left" and y > 0:
+        new_state[x][y], new_state[x][y-1] = new_state[x][y-1], new_state[x][y]
+    elif direction == "Right" and y < 2:
+        new_state[x][y], new_state[x][y+1] = new_state[x][y+1], new_state[x][y]
+    else:
+        return None
+    return new_state
+
+
+def get_successors(state):
+    moves = ["Up", "Down", "Left", "Right"]
+    successors = []
+    for m in moves:
+        new_state = move_blank(state, m)
+        if new_state:
+            successors.append((m, new_state))
+    return successors
+
+
+def heuristic(state):
+    """Count misplaced tiles."""
+    h = 0
+    for i in range(3):
+        for j in range(3):
+            if state[i][j] != 0 and state[i][j] != goal_state[i][j]:
+                h += 1
+    return h
+
+
+# --- Alpha-Beta Search (simplified output) ---
+def alphabeta(state, depth, alpha, beta, maximizing, path=[]):
+    if state == goal_state or depth == 0:
+        return -heuristic(state), path
+
+    if maximizing:
+        max_eval = float('-inf')
+        best_path = []
+        for move, succ in get_successors(state):
+            eval, new_path = alphabeta(succ, depth-1, alpha, beta, False, path + [move])
+            if eval > max_eval:
+                max_eval = eval
+                best_path = new_path
+            alpha = max(alpha, eval)
+            if beta <= alpha:
+                break
+        return max_eval, best_path
+    else:
+        min_eval = float('inf')
+        best_path = []
+        for move, succ in get_successors(state):
+            eval, new_path = alphabeta(succ, depth-1, alpha, beta, True, path + [move])
+            if eval < min_eval:
+                min_eval = eval
+                best_path = new_path
+            beta = min(beta, eval)
+            if beta <= alpha:
+                break
+        return min_eval, best_path
+
+
+# --- Main driver ---
+def play_puzzle(state, depth=3):
+    print("Initial State:")
+    print_board(state)
+
+    val, path = alphabeta(state, depth, float('-inf'), float('inf'), True)
+
+    current = copy.deepcopy(state)
+    for move in path:
+        current = move_blank(current, move)
+        print(f"Move: {move}")
+        print_board(current)
+
+    print("Goal or Best Reached State:")
+    print_board(current)
+
+
+# --- Example start state ---
+start_state = [
+    [1, 2, 3],
+    [4, 0, 6],
+    [7, 5, 8]
+]
+
+play_puzzle(start_state, depth=3)
