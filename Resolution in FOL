@@ -1,0 +1,64 @@
+facts = {
+    "Man(Marcus)",
+    "Pompeian(Marcus)"
+}
+
+rules = [
+    ("Pompeian(x)", "Roman(x)"),
+    ("Roman(x)", "Loyal(x)"),
+    ("Man(x)", "Person(x)"),
+    ("Person(x)", "Mortal(x)")
+]
+
+query = "Mortal(Marcus)"
+
+def substitute(expr, var, const):
+    return expr.replace(var, const)
+
+def forward_chain(facts, rules, query):
+    inferred = set()
+    step = 1
+    new_inferred = True
+
+    print("FORWARD REASONING PROCESS")
+    print("-------------------------------------------------------------")
+    print("Initial Facts:", ", ".join(sorted(facts)))
+    print("Query:", query)
+    print("-------------------------------------------------------------")
+
+    while new_inferred:
+        new_inferred = False
+        for antecedent, consequent in rules:
+            if "(x)" in antecedent:
+                var = "x"
+                constants = {fact[fact.find("(")+1:fact.find(")")] for fact in facts if "(" in fact}
+                for const in constants:
+                    ante = substitute(antecedent, var, const)
+                    cons = substitute(consequent, var, const)
+                    if ante in facts and cons not in facts:
+                        facts.add(cons)
+                        inferred.add(cons)
+                        print(f"Step {step}: From '{ante}' and rule '{antecedent} → {consequent}', inferred '{cons}'")
+                        step += 1
+                        new_inferred = True
+            else:
+                if antecedent in facts and consequent not in facts:
+                    facts.add(consequent)
+                    inferred.add(consequent)
+                    print(f"Step {step}: From '{antecedent} → {consequent}', inferred '{consequent}'")
+                    step += 1
+                    new_inferred = True
+
+        if query in facts:
+            print("-------------------------------------------------------------")
+            print(f"✅ QUERY PROVED: '{query}' is TRUE based on the knowledge base.")
+            print("-------------------------------------------------------------")
+            return True
+
+    print("-------------------------------------------------------------")
+    print(f"❌ QUERY NOT PROVABLE: '{query}' could not be inferred from the knowledge base.")
+    print("-------------------------------------------------------------")
+    return False
+
+if __name__ == "__main__":
+    forward_chain(facts, rules, query)
