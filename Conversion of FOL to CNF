@@ -1,0 +1,23 @@
+print("FOL TO CNF CONVERSION (Pure Python)\n")
+
+Employee = "Employee(x)"
+Happy = "Happy(x)"
+Productive = "Productive(x)"
+
+print("Original FOL: ∀x (Employee(x) → (Happy(x) ∧ Productive(x)))")
+step1 = f"¬{Employee} ∨ ({Happy} ∧ {Productive})"
+print("Remove Implication: " + step1)
+step2 = f"(¬{Employee} ∨ {Happy}) ∧ (¬{Employee} ∨ {Productive})"
+print("CNF Form: " + step2 + "\n")
+
+def fol_to_cnf(antecedent, consequent):
+    step1 = f"¬{antecedent} ∨ {consequent}"
+    if "∧" in consequent:
+        parts = [p.strip() for p in consequent.split("∧")]
+        cnf = " ∧ ".join([f"(¬{antecedent} ∨ {p})" for p in parts])
+    else:
+        cnf = step1
+    print(f"{antecedent} → {consequent}  =>  CNF: {cnf}")
+
+fol_to_cnf("Employee(x)", "Happy(x) ∧ Productive(x)")
+fol_to_cnf("Student(x)", "Smart(x) ∨ Hardworking(x)")
